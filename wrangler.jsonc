@@ -1,5 +1,5 @@
 {
-  "name": "easy-order1",
+  "name": "easy-order",
   "main": "worker.js",
   "compatibility_date": "2026-07-18",
   "kv_namespaces": [
