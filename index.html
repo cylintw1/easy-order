@@ -19,9 +19,14 @@
   #submitBtn { background:#2d6cdf; color:#fff; }
   #resultBtn { background:#eee; color:#333; }
   #status { text-align:center; margin:10px 0; font-size:0.9em; color:#2d6cdf; min-height:1.2em; }
-  .results table { width:100%; border-collapse:collapse; margin-top:8px; font-size:0.9em; }
-  .results th, .results td { border:1px solid #ddd; padding:6px; text-align:left; }
-  .results h3 { margin-bottom:4px; }
+  .results { margin-top: 4px; }
+  .results h3 { margin: 18px 0 6px 0; font-size: 1em; }
+  .table-wrap { overflow-x: auto; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .results table { width:100%; border-collapse:collapse; font-size:0.88em; background:#fff; }
+  .results th { background:#2d6cdf; color:#fff; padding:8px 10px; text-align:left; white-space:nowrap; position:sticky; top:0; }
+  .results td { padding:8px 10px; border-bottom:1px solid #eee; white-space:nowrap; }
+  .results tr:nth-child(even) td { background:#f7f9fc; }
+  .results tr:last-child td { border-bottom:none; }
 </style>
 </head>
 <body>
@@ -130,7 +135,7 @@ async function loadResults(showStatus) {
       const rows = meal.options.map(o =>
         `<tr><td>${o.key}. ${o.label}</td><td>${tally[o.key].length}</td><td>${tally[o.key].join("、")}</td></tr>`
       ).join("");
-      return `<h3>${meal.date}（${meal.restaurant}）</h3><table><tr><th>選項</th><th>人數</th><th>代碼</th></tr>${rows}</table>`;
+      return `<h3>${meal.date}（${meal.restaurant}）</h3><div class="table-wrap"><table><tr><th>選項</th><th>人數</th><th>代碼</th></tr>${rows}</table></div>`;
     }).join("") + renderByCode(data.submissions);
   } catch (e) {
     if (showStatus) status.textContent = "讀取失敗，請確認 API_URL 是否設定正確";
@@ -142,14 +147,12 @@ function renderByCode(submissions) {
   const rows = sorted.map(sub => {
     const picks = meals.map(meal => {
       const key = sub.choices[meal.id];
-      if (!key) return "（未選）";
-      const opt = meal.options.find(o => o.key === key);
-      return opt ? opt.label : key;
+      return key || "-";
     });
     return `<tr><td>${sub.name}</td>${picks.map(p => `<td>${p}</td>`).join("")}</tr>`;
   }).join("");
   const headerCols = meals.map(m => `<th>${m.date}</th>`).join("");
-  return `<h3>依代碼排序的點餐結果</h3><table><tr><th>代碼</th>${headerCols}</tr>${rows}</table>`;
+  return `<h3>依代碼排序的點餐結果</h3><div class="table-wrap"><table><tr><th>代碼</th>${headerCols}</tr>${rows}</table></div>`;
 }
 
 
