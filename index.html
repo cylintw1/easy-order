@@ -131,11 +131,27 @@ async function loadResults(showStatus) {
         `<tr><td>${o.key}. ${o.label}</td><td>${tally[o.key].length}</td><td>${tally[o.key].join("、")}</td></tr>`
       ).join("");
       return `<h3>${meal.date}（${meal.restaurant}）</h3><table><tr><th>選項</th><th>人數</th><th>代碼</th></tr>${rows}</table>`;
-    }).join("");
+    }).join("") + renderByCode(data.submissions);
   } catch (e) {
     if (showStatus) status.textContent = "讀取失敗，請確認 API_URL 是否設定正確";
   }
 }
+
+function renderByCode(submissions) {
+  const sorted = [...submissions].sort((a, b) => Number(a.name) - Number(b.name));
+  const rows = sorted.map(sub => {
+    const picks = meals.map(meal => {
+      const key = sub.choices[meal.id];
+      if (!key) return "（未選）";
+      const opt = meal.options.find(o => o.key === key);
+      return opt ? opt.label : key;
+    });
+    return `<tr><td>${sub.name}</td>${picks.map(p => `<td>${p}</td>`).join("")}</tr>`;
+  }).join("");
+  const headerCols = meals.map(m => `<th>${m.date}</th>`).join("");
+  return `<h3>依代碼排序的點餐結果</h3><table><tr><th>代碼</th>${headerCols}</tr>${rows}</table>`;
+}
+
 
 document.getElementById("resultBtn").onclick = () => loadResults(true);
 
