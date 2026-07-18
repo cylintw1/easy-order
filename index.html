@@ -132,9 +132,10 @@ async function loadResults(showStatus) {
         const pick = sub.choices[meal.id];
         if (pick && tally[pick]) tally[pick].push(sub.name);
       });
-      const rows = meal.options.map(o =>
-        `<tr><td>${o.key}. ${o.label}</td><td>${tally[o.key].length}</td><td>${tally[o.key].join("、")}</td></tr>`
-      ).join("");
+      const rows = meal.options.map(o => {
+        const sortedCodes = [...tally[o.key]].sort((a, b) => Number(a) - Number(b));
+        return `<tr><td>${o.key}. ${o.label}</td><td>${sortedCodes.length}</td><td>${sortedCodes.join("、")}</td></tr>`;
+      }).join("");
       return `<h3>${meal.date}（${meal.restaurant}）</h3><div class="table-wrap"><table><tr><th>選項</th><th>人數</th><th>代碼</th></tr>${rows}</table></div>`;
     }).join("") + renderByCode(data.submissions);
   } catch (e) {
