@@ -30,10 +30,10 @@
 
 <!-- 請在部署完 Worker 後，把下面這行網址換成你自己的 Worker 網址 -->
 <script>
-const API_URL = "https://easy-order.cylin-tw1-sc.workers.dev";
+const API_URL = "https://easy-order.YOUR-SUBDOMAIN.workers.dev";
 </script>
 
-<input type="text" id="nameInput" placeholder="請輸入你的代碼">
+<input type="text" id="nameInput" inputmode="numeric" pattern="[0-9]*" placeholder="請輸入你的代碼（純數字）">
 
 <div id="meals"></div>
 
@@ -83,7 +83,8 @@ meals.forEach(meal => {
 document.getElementById("submitBtn").onclick = async () => {
   const name = document.getElementById("nameInput").value.trim();
   const status = document.getElementById("status");
-  if (!name) { status.textContent = "請先輸入名字"; return; }
+  if (!name) { status.textContent = "請先輸入代碼"; return; }
+  if (!/^[0-9]+$/.test(name)) { status.textContent = "代碼需為數字"; return; }
 
   const choices = {};
   for (const meal of meals) {
@@ -104,19 +105,20 @@ document.getElementById("submitBtn").onclick = async () => {
     });
     const data = await res.json();
     status.textContent = data.ok ? "已送出，謝謝！" : ("錯誤：" + (data.error || "未知錯誤"));
+    if (data.ok) loadResults(false);
   } catch (e) {
     status.textContent = "送出失敗，請確認 API_URL 是否設定正確";
   }
 };
 
-document.getElementById("resultBtn").onclick = async () => {
+async function loadResults(showStatus) {
   const status = document.getElementById("status");
   const resultsDiv = document.getElementById("results");
-  status.textContent = "讀取中...";
+  if (showStatus) status.textContent = "讀取中...";
   try {
     const res = await fetch(API_URL + "/all");
     const data = await res.json();
-    status.textContent = "";
+    if (showStatus) status.textContent = "";
     resultsDiv.innerHTML = meals.map(meal => {
       const tally = {};
       meal.options.forEach(o => tally[o.key] = []);
@@ -127,12 +129,18 @@ document.getElementById("resultBtn").onclick = async () => {
       const rows = meal.options.map(o =>
         `<tr><td>${o.key}. ${o.label}</td><td>${tally[o.key].length}</td><td>${tally[o.key].join("、")}</td></tr>`
       ).join("");
-      return `<h3>${meal.date}（${meal.restaurant}）</h3><table><tr><th>選項</th><th>人數</th><th>名單</th></tr>${rows}</table>`;
+      return `<h3>${meal.date}（${meal.restaurant}）</h3><table><tr><th>選項</th><th>人數</th><th>代碼</th></tr>${rows}</table>`;
     }).join("");
   } catch (e) {
-    status.textContent = "讀取失敗，請確認 API_URL 是否設定正確";
+    if (showStatus) status.textContent = "讀取失敗，請確認 API_URL 是否設定正確";
   }
-};
+}
+
+document.getElementById("resultBtn").onclick = () => loadResults(true);
+
+// 進頁面先載入一次，之後每 5 秒自動更新一次結果
+loadResults(false);
+setInterval(() => loadResults(false), 5000);
 </script>
 
 </body>
